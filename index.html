@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Base-900 Numeral Converter</title>
+<style>
+  :root{
+    --bg:#0b0f14; --panel:#121821; --panel2:#0e141b;
+    --line:#243040; --fg:#e8eef6; --dim:#7d8b9e; --accent:#5ac8fa;
+    --phonetic:#ffb86c;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:radial-gradient(1100px 500px at 50% -220px,#16212e 0%,var(--bg) 60%) no-repeat,var(--bg);
+    color:var(--fg);
+    font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    min-height:100vh; padding:40px 20px 90px;
+  }
+  .wrap{max-width:900px;margin:0 auto}
+  h1{font-size:28px;margin:0 0 6px;letter-spacing:-.02em}
+  h1 span{color:var(--accent)}
+  .sub{color:var(--dim);margin:0 0 26px;line-height:1.6}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  input[type=text]{
+    flex:1 1 240px;background:var(--panel2);border:1px solid var(--line);color:var(--fg);
+    border-radius:10px;padding:12px 14px;font-size:16px;outline:none;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  input[type=text]:focus{border-color:var(--accent)}
+  button{
+    background:var(--accent);color:#04121b;border:0;border-radius:10px;padding:12px 22px;
+    font-weight:700;font-size:15px;cursor:pointer;
+  }
+  button:hover{filter:brightness(1.08)}
+  .err{color:#ff7b72;margin-top:10px;font-size:14px;min-height:20px}
+
+  .out{margin-top:26px}
+  .label{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:0 0 12px}
+
+  .res-card {
+    background: var(--panel2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .res-head {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: var(--dim);
+    font-size: 14px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 8px;
+    margin-bottom: 2px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .res-head b { color: var(--fg); font-size: 16px; }
+  
+  .phonetic-box {
+    background: rgba(255, 184, 108, 0.08);
+    border: 1px solid rgba(255, 184, 108, 0.3);
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: var(--phonetic);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    line-height: 1.8;
+  }
+  .click-word {
+    background: rgba(255, 184, 108, 0.15);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 4px;
+  }
+  .sep {
+    color: var(--dim);
+    font-weight: normal;
+    margin: 0 8px;
+  }
+  .digit-sep {
+    color: var(--line);
+    font-weight: normal;
+    margin: 0 12px;
+    font-size: 20px;
+  }
+
+  .glyphrow{display:flex;gap:8px;overflow-x:auto;padding:4px 2px}
+  .dcell{
+    flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:6px;
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:10px 8px 8px;color:var(--accent);
+  }
+  .dval{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:12px;color:var(--dim);letter-spacing:.02em;
+  }
+  .split{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:12px;color:var(--dim);background:var(--panel);
+    border:1px solid var(--line);border-radius:8px;padding:6px 10px;
+  }
+  .chip b{color:var(--fg);font-weight:600}
+
+  .ref{margin-top:40px}
+  .ref h2{font-size:16px;margin:0 0 4px}
+  .ref p{color:var(--dim);margin:0 0 16px;font-size:14px}
+  .group{margin-bottom:18px}
+  .gname{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:10px}
+  .item{
+    background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    display:flex;flex-direction:column;align-items:center;padding:10px 4px 6px;color:var(--fg);
+  }
+  .item .idx{font-size:12px;color:var(--dim);font-family:ui-monospace,monospace}
+  .note{
+    margin-top:26px;font-size:13px;color:var(--dim);
+    border-left:2px solid var(--line);padding-left:14px;line-height:1.7;
+  }
+  .note code{color:var(--accent);font-family:ui-monospace,monospace;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Base‑<span>900</span> Numeral Converter</h1>
+  <p class="sub">
+    30 symbols · one on top, one below · 30 × 30 = 900 digits per place.<br>
+    <i>Type a single number to see it + the next 9, or use commas/ranges (e.g. "5, 10-15").</i>
+  </p>
+
+  <div class="card">
+    <div class="row">
+      <input id="num" type="text" value="616" inputmode="text" autocomplete="off" spellcheck="false" placeholder="e.g. 50 or 1-10 or 5, 20, 100">
+      <button id="go">Convert</button>
+    </div>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div class="out">
+    <p class="label">Results (Base 10 → Base 900)</p>
+    <div id="results-list"></div>
+  </div>
+
+  <div class="ref">
+    <h2>The 30 symbols</h2>
+    <p>Every base‑900 digit is a pair (top symbol, bottom symbol).</p>
+    <div id="chart"></div>
+  </div>
+
+  <div class="note">
+    <b>Itti Pronunciation:</b> Every 30-digit symbol has its own click. A base-900 digit is made of two 30-digit symbols, so it receives <b>two clicks</b> (e.g., 616 = Top 20 + Bottom 16 → <code>click + ins · click + uns</code>). The optional "n" bridge can be used between syllables if it helps the speaker.<br>
+    <b>Encoding used:</b> for a base‑900 digit <code>d</code>, the top symbol is
+    <code>⌊d / 30⌋</code> and the bottom symbol is <code>d mod 30</code>, so
+    <code>d = 30·top + bottom</code>.<br>
+    <b>Strokes:</b> <code>10–19</code> use 1 horizontal cut (2 strokes). 
+    <code>20–29</code> use 2 cuts (3 strokes). Most numbers use a "Y" shape cut, but <code>1</code> and <code>3</code> use horizontal cuts to preserve their natural shape.
+  </div>
+
+</div>
+
+<script>
+/* ------------------------------------------------------------------ *
+ *  ITTI Pronunciation Logic (Exact map from document)
+ * ------------------------------------------------------------------ */
+function getIttiSound(sym){
+  // Exact mapping based on the source document
+  const vowels = {
+    1: 'u', 2: 'e', 3: 'o', 4: 'a', 5: 'i',
+    6: 'u', 7: 'e', 8: 'o', 9: 'a', 10: 'i',
+    11: 'u', 12: 'e', 13: 'o', 14: 'a', 15: 'i',
+    16: 'u', 17: 'e', 18: 'o', 19: 'a', 20: 'i',
+    21: 'u', 22: 'e', 23: 'o', 24: 'a', 25: 'i',
+    26: 'u', 27: 'e', 28: 'o', 29: 'a'
+  };
+
+  if (sym === 0) return 'ips';
+  if (sym >= 1 && sym <= 5) return `${vowels[sym]}f`;
+  if (sym >= 6 && sym <= 10) return `${vowels[sym]}fs`;
+  if (sym >= 11 && sym <= 15) return `${vowels[sym]}n`;
+  if (sym >= 16 && sym <= 20) return `${vowels[sym]}ns`;
+  if (sym >= 21 && sym <= 25) return `${vowels[sym]}p`;
+  if (sym >= 26 && sym <= 29) return `${vowels[sym]}ps`;
+  return '';
+}
+
+/* ------------------------------------------------------------------ *
+ *  Symbol model & rendering
+ * ------------------------------------------------------------------ */
+const W = 48, H = 52;          
+const FONT = "Arial, Helvetica, sans-serif"; 
+
+let uid = 0;
+
+function symInfo(sym){
+  if (sym < 10) return { style: 0, digit: sym };
+  if (sym < 20) return { style: 1, digit: sym - 10 };
+  return { style: 2, digit: sym - 20 };
+}
+
+function symSVG(sym, x, y, defs){
+  const { style, digit } = symInfo(sym);
+  let maskAttr = "";
+
+  if (style !== 0){
+    const id = "bsym" + (uid++);
+    let cuts = "";
+
+    if (style === 1){
+      // 10-19: One horizontal pen lift right across the middle
+      cuts = `<path d="M ${x - 10} ${y + H*0.5} L ${x + W + 10} ${y + H*0.5}" 
+                    stroke="#000" stroke-width="5" stroke-linecap="square"/>`;
+    } else {
+      // 20-29: Two pen lifts (3 strokes)
+      if (digit === 1 || digit === 3) {
+        // Custom logic for 21 and 23: Two horizontal cuts.
+        cuts = `
+          <path d="M ${x - 10} ${y + H*0.34} L ${x + W + 10} ${y + H*0.34}" 
+                stroke="#000" stroke-width="5" stroke-linecap="square"/>
+          <path d="M ${x - 10} ${y + H*0.66} L ${x + W + 10} ${y + H*0.66}" 
+                stroke="#000" stroke-width="5" stroke-linecap="square"/>
+        `;
+      } else {
+        // For other numbers (0, 2, 4, 5, 6, 7, 8, 9), use the Y-shape cut
+        const cx = x + W/2;
+        const cy = y + H*0.45;
+        cuts = `
+          <path d="M ${cx} ${y - 10} L ${cx} ${cy}" stroke="#000" stroke-width="5" stroke-linecap="square"/>
+          <path d="M ${cx} ${cy} L ${x - 10} ${y + H + 10}" stroke="#000" stroke-width="5" stroke-linecap="square"/>
+          <path d="M ${cx} ${cy} L ${x + W + 10} ${y + H + 10}" stroke="#000" stroke-width="5" stroke-linecap="square"/>
+        `;
+      }
+    }
+
+    defs.push(
+      `<mask id="${id}" maskUnits="userSpaceOnUse" x="${x}" y="${y}" width="${W}" height="${H}">` +
+      `<rect x="${x}" y="${y}" width="${W}" height="${H}" fill="#fff"/>${cuts}</mask>`
+    );
+    maskAttr = ` mask="url(#${id})"`;
+  }
+
+  return `<text x="${x + W/2}" y="${y + H*0.82}" text-anchor="middle"
+      font-family="${FONT}" font-size="${H*0.88}" font-weight="900"
+      fill="currentColor"${maskAttr}>${digit}</text>`;
+}
+
+/* ------------------------------------------------------------------ *
+ *  Base conversion (BigInt, any size)
+ * ------------------------------------------------------------------ */
+function toBase900(n){
+  if (n === 0n) return [0];
+  const out = [];
+  while (n > 0n){
+    out.unshift(Number(n % 900n));
+    n /= 900n;
+  }
+  return out;
+}
+
+/* ------------------------------------------------------------------ *
+ *  Rendering
+ * ------------------------------------------------------------------ */
+function digitCell(value){
+  const defs = [];
+  const top = Math.floor(value / 30);
+  const bottom = value % 30;
+
+  const body = symSVG(top, 0, 0, defs) + symSVG(bottom, 0, H, defs);
+
+  return `<div class="dcell" title="digit ${value} = 30·${top} + ${bottom}">
+      <svg viewBox="0 0 ${W} ${H*2}" width="${W}" height="${H*2}">
+        <defs>${defs.join("")}</defs>${body}
+      </svg>
+      <div class="dval">${value}</div>
+    </div>`;
+}
+
+function symbolPreview(sym){
+  const defs = [];
+  const body = symSVG(sym, 0, 0, defs);
+  return `<div class="item">
+      <svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
+        <defs>${defs.join("")}</defs>${body}
+      </svg>
+      <div class="idx">${sym}</div>
+    </div>`;
+}
+
+function renderResultCard(base10String) {
+  const n = BigInt(base10String);
+  const digits = toBase900(n);
+  
+  const glyphsHtml = digits.map(digitCell).join("");
+  
+  // Generate the phonetic string with TWO clicks per base-900 digit
+  const phoneticParts = digits.map(d => {
+    const top = Math.floor(d / 30);
+    const bottom = d % 30;
+    return `
+      <span class="click-word">click + ${getIttiSound(top)}</span>
+      <span class="sep">·</span>
+      <span class="click-word">click + ${getIttiSound(bottom)}</span>
+    `;
+  });
+  
+  // Join multiple base-900 digits with a distinct separator
+  const phoneticString = phoneticParts.join(`<span class="digit-sep">|</span>`);
+  
+  const chipsHtml = digits.map((d, i) => {
+    const top = Math.floor(d / 30), bottom = d % 30;
+    const place = digits.length - 1 - i;
+    return `<div class="chip">900<sup>${place}</sup> · <b>${d}</b> = 30·${top} + ${bottom}</div>`;
+  }).join("");
+
+  return `<div class="res-card">
+    <div class="res-head">
+      <span>Decimal: <b>${base10String}</b></span>
+    </div>
+    <div class="phonetic-box">
+      ${phoneticString}
+    </div>
+    <div class="glyphrow">${glyphsHtml}</div>
+    <div class="split">${chipsHtml}</div>
+  </div>`;
+}
+
+/* ------------------------------------------------------------------ *
+ *  UI Logic & Input Parsing
+ * ------------------------------------------------------------------ */
+const input   = document.getElementById("num");
+const resultsList = document.getElementById("results-list");
+const errEl   = document.getElementById("err");
+
+function parseInput(raw){
+  errEl.textContent = "";
+  const text = raw.trim();
+  
+  if (!text) return [];
+
+  if (/^\d+$/.test(text)) {
+    const start = BigInt(text);
+    const arr = [];
+    for (let i = 0n; i < 10n; i++) {
+      arr.push((start + i).toString());
+    }
+    return arr;
+  }
+
+  const results = new Set();
+  const parts = text.split(",");
+  
+  for (let part of parts) {
+    part = part.trim();
+    if (!part) continue;
+    
+    if (part.includes("-")) {
+      const [s, e] = part.split("-").map(x => x.trim());
+      if (s && e && /^\d+$/.test(s) && /^\d+$/.test(e)) {
+        const start = BigInt(s);
+        const end = BigInt(e);
+        if (end >= start) {
+          let count = 0n;
+          for (let i = start; i <= end && count < 50n; i++, count++) {
+            results.add(i.toString());
+          }
+        }
+      }
+    } else if (/^\d+$/.test(part)) {
+      results.add(BigInt(part).toString());
+    }
+  }
+  
+  if (results.size === 0) {
+    errEl.textContent = "Invalid format. Try '50', '1-10', or '10, 20, 30'.";
+    return [];
+  }
+  
+  return Array.from(results);
+}
+
+function convert(){
+  const raw = input.value;
+  const numbers = parseInput(raw);
+  
+  if (numbers.length === 0) {
+    if(!errEl.textContent) errEl.textContent = "Please enter a valid number.";
+    resultsList.innerHTML = "";
+    return;
+  }
+
+  resultsList.innerHTML = numbers.map(renderResultCard).join("");
+}
+
+document.getElementById("go").addEventListener("click", convert);
+input.addEventListener("input", convert);
+input.addEventListener("keydown", e => { if (e.key === "Enter") convert(); });
+
+/* Reference chart */
+(function buildChart(){
+  const chart = document.getElementById("chart");
+  const groups = [
+    ["0 – 9 · plain numerals", 0],
+    ["10 – 19 · split in two (one pen lift)", 10],
+    ["20 – 29 · split in three (two pen lifts)", 20]
+  ];
+  chart.innerHTML = groups.map(([name, start]) => {
+    let items = "";
+    for (let i = 0; i < 10; i++) items += symbolPreview(start + i);
+    return `<div class="group"><div class="gname">${name}</div><div class="grid">${items}</div></div>`;
+  }).join("");
+})();
+
+convert();
+</script>
+</body>
+</html>
